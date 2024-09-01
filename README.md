@@ -12,7 +12,7 @@ Plugin for displaying the inlay hints for the current line in the echo area.
   - [ ] FAQ
   - [ ] Contributing
 - [ ] Workflows
-  - [ ] Typechecking
+  - [x] Typechecking
   - [x] Formatting
   - [ ] Testing
   - [ ] Docgen
