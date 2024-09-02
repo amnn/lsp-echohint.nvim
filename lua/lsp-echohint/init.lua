@@ -1,16 +1,93 @@
 local M = {}
 
+---@alias EchoText [string, string]
+
+---@class EchoHint
+---@field label string     -- the text to display. If the underlying hint was
+---                           composed of label parts, this will be the
+---                           concatenation of all of them.
+---@field character number -- the character offset in the line.
+---@field kind number      -- the hint kind. 1 = Type, 2 = Parameter
+
+---@alias LspEchoHint.Display fun(line: number, hints: EchoHint[]): EchoText[]?
+
+---Default display function for inlay hints. Accepts a list of hints for the
+---line and returns a list of pairs of text and its highlight group.
+---
+---The default display adds the following features:
+---
+--- - Cleans up hints of punctuation (leading and trailing colons).
+--- - Attempts to display the name of the value (mainly variable) that a type
+---   hint is for, using treesitter.
+--- - Highlights (roughly) where the cursor is by highlighting the nearest
+---   delimiter in the output
+---
+---@param line number
+---@param hints EchoHint[]
+---@return EchoText[]?
+local function display(line, hints)
+  local col = vim.api.nvim_win_get_cursor(0)[2]
+
+  local last = 0
+  local tokens = {}
+  local prefix = "["
+
+  for _, hint in ipairs(hints) do
+    local at_cursor = last <= col and col < hint.character
+    local highlight = at_cursor and "Cursor" or "Normal"
+
+    table.insert(tokens, { prefix, highlight })
+    table.insert(tokens, { " ", "Normal" })
+
+    -- If this is a type hint, try to find the expression that this type
+    -- corresponds to, using treesitter.
+    if hint.kind == 1 then
+      local node = vim.treesitter.get_node {
+        pos = {
+          line,
+          hint.character - 1,
+        },
+      }
+
+      if node then
+        local text = vim.treesitter.get_node_text(node, 0)
+        table.insert(tokens, { text, "Identifier" })
+        table.insert(tokens, { ": ", "Delimiter" })
+      end
+    end
+
+    -- Some language servers (e.g. Rust Analyzer) return hints with
+    -- colons to represent type annotations (leading colon), or parameter
+    -- names (trailing colon). Remove them, because we are not displaying
+    -- the hint inline.
+    local label = hint.label
+    label = vim.trim(label:gsub("^:", ""):gsub(":$", ""))
+
+    table.insert(tokens, { label, "Type" })
+    table.insert(tokens, { " ", "Normal" })
+
+    last = hint.character
+    prefix = "|"
+  end
+
+  local highlight = last <= col and "Cursor" or "Normal"
+  table.insert(tokens, { "]", highlight })
+  return tokens
+end
+
 ---@class LspEchoHint.Config
 ---@field auto_enable boolean?
+---@field display LspEchoHint.Display?
 local default_config = {
   auto_enable = true,
+  display = display,
 }
 
 ---Handler for textDocument/inlayHint that sets a buffer-local variable with a
 ---mapping from line numbers to a list of hints on that line, in character
 ---order.
 ---
---- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_inlayHint
+---https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_inlayHint
 ---
 ---@param err lsp.ResponseError?
 ---@param res lsp.InlayHint[]
@@ -47,30 +124,9 @@ local function gather_inlay_hints(err, res, ctx, _)
           :join ""
       end
 
-      -- Some language servers (e.g. Rust Analyzer) return hints with
-      -- colons to represent type annotations (leading colon), or parameter
-      -- names (trailing colon). Remove them, because we are not displaying
-      -- the hint inline.
-      label = vim.trim(label:gsub("^:", ""):gsub(":$", ""))
-
-      -- If this is a type hint, try to find the variable that this type
-      -- corresponds to, using treesitter.
-      if hint.kind == 1 then
-        local node = vim.treesitter.get_node {
-          bufnr = buf,
-          pos = {
-            hint.position.line,
-            hint.position.character - 1,
-          },
-        }
-
-        if node then
-          label = vim.treesitter.get_node_text(node, buf, {}) .. ": " .. label
-        end
-      end
-
       local line = hint.position.line + 1
-      local token = { label = label, position = hint.position.character }
+      local token =
+        { label = label, character = hint.position.character, kind = hint.kind }
 
       if not hints[line] then hints[line] = {} end
       table.insert(hints[line], token)
@@ -98,38 +154,17 @@ function M.setup(config)
     group = show_hints_group,
     desc = "Show the inlay hints for the current line",
     callback = function(_)
-      local pos = vim.api.nvim_win_get_cursor(0)
-      local line = pos[1]
-      local col = pos[2]
-
+      local line = vim.api.nvim_win_get_cursor(0)[1]
       local hints = vim.b.inlay_hints
-      if not hints then return end
 
       -- If the current line has no hints, explicitly clear the echo area.
-      local hint = hints[line]
+      local hint = hints and hints[line]
       if hint == nil or hint == vim.NIL or #hint == 0 then
         vim.api.nvim_echo({}, false, {})
         return
       end
 
-      local last = 0
-      local tokens = {}
-      local prefix = "["
-
-      for _, token in ipairs(hint) do
-        local at_cursor = last <= col and col < token.position
-        local highlight = at_cursor and "Cursor" or "Normal"
-        table.insert(tokens, { prefix, highlight })
-        table.insert(tokens, { " ", "Normal" })
-        table.insert(tokens, { token.label, "Type" })
-        table.insert(tokens, { " ", "Normal" })
-
-        last = token.position
-        prefix = "|"
-      end
-
-      local highlight = last <= col and "Cursor" or "Normal"
-      table.insert(tokens, { "]", highlight })
+      local tokens = config.display(line, hint) or {}
       vim.api.nvim_echo(tokens, false, {})
     end,
   })
