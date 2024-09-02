@@ -16,6 +16,6 @@ Plugin for displaying the inlay hints for the current line in the echo area.
   - [x] Formatting
   - [ ] Testing
   - [x] Docgen
-- [ ] Initial version of plugin (just pulled from my config, no parameters).
+- [x] Initial version of plugin (just pulled from my config, no parameters).
 - [ ] Configure auto-enable
 - [ ] Configure display callback
