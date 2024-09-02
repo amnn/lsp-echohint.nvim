@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.DOCS_PAT }}
       - uses: kdheepak/panvimdoc@main
         with:
           vimdoc: ${{ github.event.repository.name }}
