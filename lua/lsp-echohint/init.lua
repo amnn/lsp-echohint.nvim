@@ -44,7 +44,7 @@ local function display(line, hints)
     if hint.kind == 1 then
       local node = vim.treesitter.get_node {
         pos = {
-          line,
+          line - 1,
           hint.character - 1,
         },
       }
