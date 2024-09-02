@@ -1,13 +1,21 @@
 local M = {}
 
+---@class LspEchoHint.Config
+---@field auto_enable boolean?
+local default_config = {
+  auto_enable = true,
+}
+
 ---Handler for textDocument/inlayHint that sets a buffer-local variable with a
 ---mapping from line numbers to a list of hints on that line, in character
 ---order.
 ---
----@param err table
+--- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_inlayHint
+---
+---@param err lsp.ResponseError?
 ---@param res lsp.InlayHint[]
 ---@param ctx lsp.HandlerContext
----@param _ any
+---@param _ table
 local function gather_inlay_hints(err, res, ctx, _)
   -- TODO: Reset hints on error and empty responses
   if not res then return end
@@ -74,8 +82,11 @@ local function gather_inlay_hints(err, res, ctx, _)
   vim.b[buf].inlay_hints = hints
 end
 
-function M.setup(_)
-  -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_inlayHint
+---Setup displaying inlay hints in the echo area.
+---@param config LspEchoHint.Config
+function M.setup(config)
+  config = vim.tbl_deep_extend("force", default_config, config)
+
   vim.lsp.handlers["textDocument/inlayHint"] = gather_inlay_hints
 
   local show_hints_group =
@@ -121,19 +132,21 @@ function M.setup(_)
     end,
   })
 
-  vim.api.nvim_create_autocmd("LspAttach", {
-    group = show_hints_group,
-    desc = "Enable inlay hints if the server supports them",
-    callback = function(ctx)
-      local client = ctx.data.client_id
-        and vim.lsp.get_client_by_id(ctx.data.client_id)
-      if not client then return end
+  if config.auto_enable then
+    vim.api.nvim_create_autocmd("LspAttach", {
+      group = show_hints_group,
+      desc = "Enable inlay hints if the server supports them",
+      callback = function(ctx)
+        local client = ctx.data.client_id
+          and vim.lsp.get_client_by_id(ctx.data.client_id)
+        if not client then return end
 
-      if client.server_capabilities.inlayHintProvider then
-        vim.lsp.inlay_hint.enable(true, { bufnr = ctx.buf })
-      end
-    end,
-  })
+        if client.server_capabilities.inlayHintProvider then
+          vim.lsp.inlay_hint.enable(true, { bufnr = ctx.buf })
+        end
+      end,
+    })
+  end
 end
 
 return M
