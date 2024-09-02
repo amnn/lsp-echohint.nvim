@@ -17,68 +17,70 @@ local default_config = {
 ---@param ctx lsp.HandlerContext
 ---@param _ table
 local function gather_inlay_hints(err, res, ctx, _)
-  -- TODO: Reset hints on error and empty responses
-  if not res then return end
-
+  local hints = {}
   local buf = ctx.bufnr or -1
-  if not vim.api.nvim_buf_is_valid(buf) then return end
-
   local client = vim.lsp.get_client_by_id(ctx.client_id)
-  if not client then return end
-  if not client.server_capabilities.inlayHintProvider then return end
 
   if err then
     vim.notify("Inlay Hints Error: " .. vim.inspect(err), vim.log.levels.ERROR)
-    return
-  end
+  elseif
+    res
+    and vim.api.nvim_buf_is_valid(buf)
+    and client
+    and client.server_capabilities.inlayHintProvider
+  then
+    -- Sort the results by character position so that when we gather them
+    -- up into lines, we process hints in the order they should appear in
+    -- the line.
+    table.sort(
+      res,
+      function(a, b) return a.position.character < b.position.character end
+    )
 
-  -- Sort the results by character position so that when we gather them
-  -- up into lines, we process hints in the order they should appear in
-  -- the line.
-  table.sort(
-    res,
-    function(a, b) return a.position.character < b.position.character end
-  )
-
-  local hints = {}
-  for _, hint in ipairs(res) do
-    local label = hint.label
-    if type(label) ~= "string" then
-      -- If the label is an InlayHintLabelPart[], gather all the labels within it.
-      label = vim.iter(label):map(function(part) return part.value end):join ""
-    end
-
-    -- Some language servers (e.g. Rust Analyzer) return hints with
-    -- colons to represent type annotations (leading colon), or parameter
-    -- names (trailing colon). Remove them, because we are not displaying
-    -- the hint inline.
-    label = vim.trim(label:gsub("^:", ""):gsub(":$", ""))
-
-    -- If this is a type hint, try to find the variable that this type
-    -- corresponds to, using treesitter.
-    if hint.kind == 1 then
-      local node = vim.treesitter.get_node {
-        bufnr = buf,
-        pos = {
-          hint.position.line,
-          hint.position.character - 1,
-        },
-      }
-
-      if node then
-        label = vim.treesitter.get_node_text(node, buf, {}) .. ": " .. label
+    for _, hint in ipairs(res) do
+      local label = hint.label
+      if type(label) ~= "string" then
+        -- If the label is an InlayHintLabelPart[], gather all the labels within it.
+        label = vim
+          .iter(label)
+          :map(function(part) return part.value end)
+          :join ""
       end
+
+      -- Some language servers (e.g. Rust Analyzer) return hints with
+      -- colons to represent type annotations (leading colon), or parameter
+      -- names (trailing colon). Remove them, because we are not displaying
+      -- the hint inline.
+      label = vim.trim(label:gsub("^:", ""):gsub(":$", ""))
+
+      -- If this is a type hint, try to find the variable that this type
+      -- corresponds to, using treesitter.
+      if hint.kind == 1 then
+        local node = vim.treesitter.get_node {
+          bufnr = buf,
+          pos = {
+            hint.position.line,
+            hint.position.character - 1,
+          },
+        }
+
+        if node then
+          label = vim.treesitter.get_node_text(node, buf, {}) .. ": " .. label
+        end
+      end
+
+      local line = hint.position.line + 1
+      local token = { label = label, position = hint.position.character }
+
+      if not hints[line] then hints[line] = {} end
+      table.insert(hints[line], token)
     end
-
-    local line = hint.position.line + 1
-    local token = { label = label, position = hint.position.character }
-
-    if not hints[line] then hints[line] = {} end
-    table.insert(hints[line], token)
   end
 
-  -- Set the new hints -- we build them up first and then set them in one
-  -- go to prevent the UI from displaying incomplete information.
+  -- Set the new hints -- we build them up first and then set them in one go to
+  -- prevent the UI from displaying incomplete information. We also set them
+  -- even if the response is an error, to prevent the UI from getting stuck
+  -- displaying stale information.
   vim.b[buf].inlay_hints = hints
 end
 
