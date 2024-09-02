@@ -26,7 +26,7 @@ TODO                                     *lsp-echohint-lsp-echohint.nvim-todo*
     - ☒ Formatting
     - ☐ Testing
     - ☒ Docgen
-- ☐ Initial version of plugin (just pulled from my config, no parameters).
+- ☒ Initial version of plugin (just pulled from my config, no parameters).
 - ☐ Configure auto-enable
 - ☐ Configure display callback
 
