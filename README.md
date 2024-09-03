@@ -81,7 +81,7 @@ all the time.
   feature, the clean-ups of leading and trailing colons, and the GitHub
   workflows for managing a Neovim plugin repository.
 - [felpafel/inlay-hint.nvim](https://github.com/felpafel/inlay-hint.nvim): I
-  borrowed the idea of exposing a display callback from this function, as well
+  borrowed the idea of exposing a display callback from this plugin, as well
   as the idea of extracting the source expression using treesitter.
 
 ## FAQ
