@@ -2,6 +2,14 @@
 
 Plugin for displaying the inlay hints for the current line in the echo area.
 
+<p align="center">
+<img width="497" alt="lua" src="https://github.com/user-attachments/assets/893680f7-4be5-49a9-bc62-ca1539eefa81">
+<img width="497" alt="rust" src="https://github.com/user-attachments/assets/22b135a9-28ab-4133-8793-82f8158c4535">
+<img width="497" alt="tsx" src="https://github.com/user-attachments/assets/2438eedf-3edf-42fb-8719-9a0c2fa504c1">
+</p>
+
+*(Clockwise from top left, click to zoom in) Lua, Rust, TypeScript (TSX). [Theming](https://github.com/amnn/nvim/blob/7219c529e2f25efc039eaf2f3947cc2e086f4792/lua/plugins/theming.lua): [modus-operandi](https://github.com/miikanissi/modus-themes.nvim), [lualine.nvim (ayu)](https://github.com/nvim-lualine/lualine.nvim), [kitty](https://sw.kovidgoyal.net/kitty/).*
+
 ## Requirements
 
 - Neovim **0.10+**.
@@ -135,8 +143,3 @@ version and if it is still there please share a report as an issue, with:
 If you are interested in working on features please take a look at current
 [open issues](https://github.com/amnn/lsp-echohint.nvim/issues) for
 inspiration!
-
-## TODO
-
-- [ ] Complete README
-  - [ ] GIFs
