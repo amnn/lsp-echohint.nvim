@@ -101,7 +101,8 @@ using
 vim.api.inlay_hint.enable(true)
 ```
 
-will enable it for your current buffer, and this can be done automatically by
+will enable it for your current buffer, and the default rendering will display
+hints inline (as originally intended), and this can be done automatically by
 adding the following autocmd to your configuration:
 
 ```lua
