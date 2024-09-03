@@ -39,6 +39,13 @@ local function display(line, hints)
     table.insert(tokens, { prefix, highlight })
     table.insert(tokens, { " ", "Normal" })
 
+    -- Some language servers (e.g. Rust Analyzer) return hints with
+    -- colons to represent type annotations (leading colon), or parameter
+    -- names (trailing colon). Remove them, because we are not displaying
+    -- the hint inline.
+    local label = hint.label
+    label = vim.trim(label:gsub("^:", ""):gsub(":$", ""))
+
     -- If this is a type hint, try to find the expression that this type
     -- corresponds to, using treesitter.
     if hint.kind == 1 then
@@ -54,18 +61,13 @@ local function display(line, hints)
         table.insert(tokens, { text, "Identifier" })
         table.insert(tokens, { ": ", "Delimiter" })
       end
+
+      table.insert(tokens, { label, "Type" })
+    else
+      table.insert(tokens, { label, "Identifier" })
     end
 
-    -- Some language servers (e.g. Rust Analyzer) return hints with
-    -- colons to represent type annotations (leading colon), or parameter
-    -- names (trailing colon). Remove them, because we are not displaying
-    -- the hint inline.
-    local label = hint.label
-    label = vim.trim(label:gsub("^:", ""):gsub(":$", ""))
-
-    table.insert(tokens, { label, "Type" })
     table.insert(tokens, { " ", "Normal" })
-
     last = hint.character
     prefix = "|"
   end
