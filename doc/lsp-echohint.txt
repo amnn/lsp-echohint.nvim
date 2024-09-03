@@ -111,6 +111,20 @@ all the time.
 FAQ                                       *lsp-echohint-lsp-echohint.nvim-faq*
 
 
+HOW DO I MAKE THE HINTS SHOW UP FASTER? ~
+
+Displaying the hint is triggered by the `CursorHold` autocmd. By default, this
+has a delay of 4 seconds, which may be too long for you. This can be controlled
+using the `updatetime` setting:
+
+>lua
+    vim.opt.updatetime = 1500 -- show hints after 1.5s
+<
+
+But note that this controls the delay for **all** cursor hold events, not just
+displaying inlay hints.
+
+
 HOW DO I ENABLE INLAY HINTS FOR MY LANGUAGE SERVER? ~
 
 Please take a look at my personal configuration
