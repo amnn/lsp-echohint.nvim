@@ -94,6 +94,19 @@ all the time.
 
 ## FAQ
 
+### How do I make the hints show up faster?
+
+Displaying the hint is triggered by the `CursorHold` autocmd. By default, this
+has a delay of 4 seconds, which may be too long for you. This can be controlled
+using the `updatetime` setting:
+
+```lua
+vim.opt.updatetime = 1500 -- show hints after 1.5s
+```
+
+But note that this controls the delay for **all** cursor hold events, not just
+displaying inlay hints.
+
 ### How do I enable inlay hints for my language server?
 
 Please take a look at my [personal configuration](https://github.com/amnn/nvim/blob/7219c529e2f25efc039eaf2f3947cc2e086f4792/lua/plugins/lsp.lua#L124-L171)
