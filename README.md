@@ -8,7 +8,7 @@ Plugin for displaying the inlay hints for the current line in the echo area.
 <img width="497" alt="tsx" src="https://github.com/user-attachments/assets/2438eedf-3edf-42fb-8719-9a0c2fa504c1">
 </p>
 
-*(Clockwise from top left, click to zoom in) Lua, Rust, TypeScript (TSX). [Theming](https://github.com/amnn/nvim/blob/7219c529e2f25efc039eaf2f3947cc2e086f4792/lua/plugins/theming.lua): [modus-operandi](https://github.com/miikanissi/modus-themes.nvim), [lualine.nvim (ayu)](https://github.com/nvim-lualine/lualine.nvim), [kitty](https://sw.kovidgoyal.net/kitty/).*
+*(Left to right, top to bottom, click to zoom in) Lua, Rust, TypeScript (TSX). [Theming](https://github.com/amnn/nvim/blob/7219c529e2f25efc039eaf2f3947cc2e086f4792/lua/plugins/theming.lua): [modus-operandi](https://github.com/miikanissi/modus-themes.nvim), [lualine.nvim (ayu)](https://github.com/nvim-lualine/lualine.nvim), [kitty](https://sw.kovidgoyal.net/kitty/).*
 
 ## Requirements
 
