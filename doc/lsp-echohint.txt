@@ -18,7 +18,7 @@ Plugin for displaying the inlay hints for the current line in the echo area.
 
 
 
-_(Clockwise from top left, click to zoom in) Lua, Rust, TypeScript (TSX).
+_(Left to right, top to bottom, click to zoom in) Lua, Rust, TypeScript (TSX).
 Theming: modus-operandi, lualine.nvim (ayu), kitty._
 
 
