@@ -100,10 +100,9 @@ local function gather_inlay_hints(err, res, ctx, _)
   local buf = ctx.bufnr or -1
   local client = vim.lsp.get_client_by_id(ctx.client_id)
 
-  if err then
-    vim.notify("Inlay Hints Error: " .. vim.inspect(err), vim.log.levels.ERROR)
-  elseif
+  if
     res
+    and not err
     and vim.api.nvim_buf_is_valid(buf)
     and client
     and client.server_capabilities.inlayHintProvider
