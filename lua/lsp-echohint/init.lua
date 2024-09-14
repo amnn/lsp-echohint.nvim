@@ -1,23 +1,21 @@
 local M = {}
 
+---Try and find a treesitter node near `line` and `character` and get its
+---contents as a string to use as the value part of a `value: type` hint.
+---
+---If the value is too long or contains newlines, it is truncated by replacing
+---newlines with spaces, and limiting the overall length to 20 characters
+---(including an ellipsis).
 local function value_hint(line, character)
-  local node = vim.treesitter.get_node {
-    pos = {
-      line - 1,
-      character - 1,
-    },
-  }
-
+  local node = vim.treesitter.get_node { pos = { line - 1, character - 1 } }
   if not node then return end
 
   local text = vim.treesitter.get_node_text(node, 0)
-
-  print(vim.inspect(#text))
-  for child, child_text in node:iter_children() do
-    print("Node", child:sexpr())
+  if #text < 20 or text:match "\n" then
+    return text
+  else
+    return text:gsub("\n *", " "):sub(1, 17) .. "..."
   end
-
-  return text
 end
 
 ---@alias EchoText [string, string]
