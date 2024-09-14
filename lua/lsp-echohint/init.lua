@@ -1,5 +1,23 @@
 local M = {}
 
+---Try and find a treesitter node near `line` and `character` and get its
+---contents as a string to use as the value part of a `value: type` hint.
+---
+---If the value is too long or contains newlines, it is truncated by replacing
+---newlines with spaces, and limiting the overall length to 20 characters
+---(including an ellipsis).
+local function value_hint(line, character)
+  local node = vim.treesitter.get_node { pos = { line - 1, character - 1 } }
+  if not node then return end
+
+  local text = vim.treesitter.get_node_text(node, 0)
+  if #text > 20 or text:match "\n" then
+    return text:gsub("\n *", " "):sub(1, 17) .. "..."
+  else
+    return text
+  end
+end
+
 ---@alias EchoText [string, string]
 
 ---@class EchoHint
@@ -49,16 +67,10 @@ local function display(line, hints)
     -- If this is a type hint, try to find the expression that this type
     -- corresponds to, using treesitter.
     if hint.kind == 1 then
-      local node = vim.treesitter.get_node {
-        pos = {
-          line - 1,
-          hint.character - 1,
-        },
-      }
+      local value = value_hint(line, hint.character)
 
-      if node then
-        local text = vim.treesitter.get_node_text(node, 0)
-        table.insert(tokens, { text, "Identifier" })
+      if value then
+        table.insert(tokens, { value, "Identifier" })
         table.insert(tokens, { ": ", "Delimiter" })
       end
 
