@@ -11,8 +11,8 @@ local function value_hint(line, character)
   if not node then return end
 
   local text = vim.treesitter.get_node_text(node, 0)
-  if #text < 20 then return text end
 
+  print(vim.inspect(#text))
   for child, child_text in node:iter_children() do
     print(vim.inspect(child))
     print(vim.inspect(child_text))
