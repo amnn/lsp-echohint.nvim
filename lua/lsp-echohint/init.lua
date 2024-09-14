@@ -11,10 +11,10 @@ local function value_hint(line, character)
   if not node then return end
 
   local text = vim.treesitter.get_node_text(node, 0)
-  if #text < 20 or text:match "\n" then
-    return text
-  else
+  if #text > 20 or text:match "\n" then
     return text:gsub("\n *", " "):sub(1, 17) .. "..."
+  else
+    return text
   end
 end
 
