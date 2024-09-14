@@ -14,8 +14,7 @@ local function value_hint(line, character)
 
   print(vim.inspect(#text))
   for child, child_text in node:iter_children() do
-    print(vim.inspect(child))
-    print(vim.inspect(child_text))
+    print("Node", child:sexpr())
   end
 
   return text
