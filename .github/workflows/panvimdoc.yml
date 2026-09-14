@@ -5,22 +5,48 @@ on:
     branches: [main]
     paths:
       - README.md
-      - docs/*
       - .github/workflows/panvimdoc.yml
+  workflow_dispatch: ~
 
 permissions:
   contents: write
+  pull-requests: write
+
+concurrency:
+  group: panvimdoc
+  cancel-in-progress: false
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: kdheepak/panvimdoc@main
         with:
           vimdoc: "lsp-echohint"
           version: "NVIM v0.10.0"
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - name: Remove generation date
+        run: |
+          # Remove the date and keep the subtitle right-aligned to 78 columns.
+          awk 'NR == 2 {
+            sub(/[[:space:]]+Last change:.*$/, "")
+            sub(/^[[:space:]]+/, "")
+            $0 = sprintf("%78s", $0)
+          }
+          { print }' doc/lsp-echohint.txt > "$RUNNER_TEMP/lsp-echohint.txt"
+          mv "$RUNNER_TEMP/lsp-echohint.txt" doc/lsp-echohint.txt
+      - uses: peter-evans/create-pull-request@v8
         with:
-          commit_message: "chore: generate docs"
-          branch: ${{ github.head_ref }}
+          branch: automation/docs
+          base: main
+          delete-branch: true
+          add-paths: doc/lsp-echohint.txt
+          commit-message: "chore: generate docs"
+          title: "chore: generate docs"
+          body: |
+            Regenerate `doc/lsp-echohint.txt` from `README.md` using panvimdoc.
+
+            This PR was created with `GITHUB_TOKEN`. If prompted, select
+            **Approve workflows to run** to run CI before merging.
